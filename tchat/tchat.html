@@ -1,0 +1,135 @@
+<html>
+<head>
+	<script src="../lib/jquery-1.11.2.js" type="text/javascript"></script>
+	<script src="../lib/jquery.scrollTo.js" type="text/javascript"></script>
+</head>
+<body>
+
+<style>
+
+#tchatMessages
+{
+	height:200px;
+	max-height:200px;
+	width:255px;
+	overflow:auto;
+	overflow-x: hidden; 
+}
+
+.messageBox
+{
+	background-color:#eeeeaa;
+	border:solid 1px #cccccc;
+	border-radius: 5px;
+	padding:5px;
+	width:240px;
+	margin-bottom:2px;
+}
+
+.userMessage
+{
+	background-color:#eeaaaa;
+}
+
+.me{
+	background-color: pink;
+}
+
+#messageText
+{
+	height:40px;
+}
+
+input[type=button], input[type=text]
+{
+	height:40px;
+	font-size:14px;
+}
+
+body
+{
+	margin:50px 0px; padding:0px;
+	text-align:center;
+}
+
+	
+#content 
+{
+	width:250px;
+	margin:0px auto;
+	text-align:left;
+	padding:15px;
+	border:1px dashed #333;
+	background-color:#eee;
+}
+
+</style>
+
+<script>
+
+var login;
+function startTchat(){
+	login = $("input[name='login']").val();
+	setInterval(getMessages, 2000);
+	$('div#tchatLogin').hide("slow");
+	$('div#tchatcontainer').show("slow");
+};
+
+function getMessages(){
+	$.get("http://localhost/JSpit/tchat/tchat.php", null, buildMessages, 'json');
+};
+
+function buildMessages(data, textStatus, jqXHR){
+	if(data && data.length != $('div#tchatMessages > div').size()){
+		var messages = [];
+		$(data).each(function(index, message){
+			var meClass = (message.login==login)? "me":"";
+			messages.push("<div class='messageBox "+ meClass +"'>" + message.login + " : " + message.text + "</div>");
+		});
+		$('div#tchatMessages').html(messages);
+		$('div#tchatMessages').scrollTo('max', 500);
+	}
+};
+
+function buildNewMessage(){
+	var message = $('textarea#messageText').val();
+	if(message){
+		$('div#tchatMessages').append("<div class='messageBox me'>" + login + " : " + message + "</div>");
+		$('div#tchatMessages').scrollTo('max', 500);
+		$('textarea#messageText').val('');
+	}
+};
+
+function onNewMessage(){
+	$.get("http://localhost/JSpit/tchat/tchat.php", {login: login, text: $('textarea#messageText').val()}, buildNewMessage, 'json');
+};
+
+</script>
+<div id="content">
+
+<H1>Tchat</H1>
+
+<div id="tchatLogin">
+Veuillez vous identifier avant de commencer à Tchatter :
+<br/>
+	<input type="text" name="login"/>
+	<input type="button"  value="Commencer" onclick="startTchat()"/>
+</div>
+
+<div id="tchatcontainer" style="display:none">
+
+	<div id="tchatMessages">
+	<!-- contruire les messages ici -->
+	</div>
+
+	<div>
+		<textarea id="messageText" style="float:left"></textarea>
+		<input type="button"  value="Envoyer" onclick="onNewMessage()"/>
+	</div>
+
+</div>
+
+</div>
+
+</body>
+</html>
