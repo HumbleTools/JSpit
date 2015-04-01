@@ -1,0 +1,146 @@
+<html>
+<head>
+	<script src="../lib/jquery-1.11.2.js" type="text/javascript" ></script>
+	<script src="../lib/jquery.easing.js" type="text/javascript" ></script>
+	<script src="../lib/jqueryRotate.js" type="text/javascript" ></script>
+	<style>
+		.box{
+			width: 50px;
+			height: 50px;
+			background-color: red;
+			border: solid 1px;
+			position: absolute;
+			top: -60px;left:0px;
+			cursor: pointer;
+		}
+		.yellowBox{
+			background-color: yellow;
+		}
+		input[name='playBtn'], div#scoreLabel{
+			z-index: 1;
+		}
+	</style>
+</head>
+<body>
+	<script>
+		//Indications : 
+		// var timer = setInterval(onMove, 1000);
+		// arreter le timer : clearInterval(timer);
+		// Math.random(); --> chiffre entre 0 et 1
+
+		// 1 - a chaque changement de position, au hazard une box devient jaune.
+		// 1 et seule à la fois
+
+		// addClass / removeClass / hasClass
+
+		// 2 - a chaque fois que l'utilisateur click sur une box jaune : + 1 point
+		// 3 - a chaque fois que l'utilisateur click sur une box rouge  : - 1 point
+		// 4 - comptabiliser le score de cette maniere : XXX points / XXX deplacement
+
+		var score = 0;
+		var total = 0;
+		var animationInterval = 1000;
+		var timerInterval = animationInterval+500;
+		var boxCount = 5;
+		var yellowBoxId;
+		var yellowBoxClicked = false;
+		var timer;
+		var rotationTimer;
+		var windowHeightLimit = $(document).height()-70;
+		var windowWidthLimit = $(document).width()-70;
+
+		$(function(){
+			//déterminer l'id de la première box jaune
+			yellowBoxId = getRandomInt(0,boxCount);
+			//création des boxes
+			for(var i=0; i<=boxCount; i++){
+				var newBox = "<div id='"+ i +"' class='box'></div>";
+				$("body").append(newBox);
+			};
+			$("div#"+ yellowBoxId).addClass("yellowBox");
+			$('.box').click(boxClick);
+			//$(document).click(function(){alert('sdg');});
+			
+			/*var foo = $._data( $('.box').get(0), 'events' ).click
+			// you can query $.data( object, 'events' ) and get an object back, then see what events are attached to it.
+
+			$.each( foo, function(i,o) {
+				console.log(i); // guid of the event
+				console.log(o); // the function definition of the event handler
+			});*/
+			
+			
+			
+			updateScore();
+		});
+
+		function onMove(){
+			yellowBoxClicked = false;
+			$("div#"+ yellowBoxId).removeClass("yellowBox");
+			yellowBoxId = getRandomInt(0,boxCount);
+			$("div#"+ yellowBoxId).addClass("yellowBox");
+			$(".box").each(function(index,box){
+				var newTopValue = getRandomInt(0,windowHeightLimit);
+				var newLeftValue = getRandomInt(0,windowWidthLimit);
+				$(box).animate({ 
+					top: newTopValue,
+					left: newLeftValue
+				}, animationInterval, "easeOutBounce");
+			});
+			total +=1;
+			updateScore();
+		};
+
+		function onPlay(){
+			var playButton = $("input[name='playBtn']");
+			if(playButton.prop('value')=='Pause'){
+				clearInterval(timer);
+				rotationTimer = getRotationTimer();
+				playButton.prop('value', 'Play');
+			}else{
+				onMove();
+				timer = setInterval(onMove, timerInterval);
+				clearInterval(rotationTimer);
+				$('div.box').rotate({animateTo:0});
+				playButton.prop('value', 'Pause');
+			}
+			
+		};
+
+		function getRotationTimer(){
+			var angle = 0;
+			return setInterval(function(){
+				 angle+=3;
+				 $("div.box").rotate(angle);
+			},50);
+		};
+
+		function boxClick(){
+			//alert('in');
+			var playButton = $("input[name='playBtn']");
+			if(playButton.prop('value')=='Pause'){
+				if($(this).hasClass("yellowBox")){
+					if(!yellowBoxClicked){
+						yellowBoxClicked = true;
+						score++;
+						updateScore();
+					}
+				}else{
+					score--;
+					updateScore();
+				}
+			}
+		};
+
+		function getRandomInt(min, max) {
+			return Math.floor(Math.random() * (max - min + 1)) + min;
+		};
+
+		function updateScore(){
+			$('span#score').text("Score : " + score + " - Tour : " + total);
+		};
+	</script>
+	<input name="playBtn" type="button" value="Play" onclick="onPlay()"/>
+	<div id="scoreLabel" style="float:right;background-color:#AAAAAA;border:solid;padding:10px"><span id="score">Score : 0 - Tour : 0</span></div>
+</body>
+</html>
